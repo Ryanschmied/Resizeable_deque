@@ -1,7 +1,7 @@
 /*****************************************
- * UW User ID:  n4mahaja
+ * UW User ID:  rmschmie
  * Submitted for ECE 250
- * Semester of Submission:  Winter 2018
+ * Semester of Submission:  (Winter) 2018
  *
  * By submitting this file, I affirm that
  * I am the author of all modifications to
@@ -12,7 +12,7 @@
 #define DYNAMIC_DEQUE_H
 
 #include "Exception.h"
-#include <iostream>
+
 template <typename Type>
 class Resizable_deque {
 	public:
@@ -36,18 +36,18 @@ class Resizable_deque {
 		void pop_back();
 		void clear();
 
+    //Private member variables
 	private:
-    Type *array ;
-    int ifront;
-    int iback;
-    int deque_size;
-    int initial_array_capacity;
-    int array_capacity;
-
-
-		// Your member variables
-
+        Type *array;
+        int ifront;
+        int iback;
+        int deque_size;
+        int initial_array_capacity;
+        int array_capacity;
+    
 		// Any private member functions
+        void double_array_capacity();
+        void halve_array_capacity();
 		//   - helper functions for resizing your array?
 
 	// Friends
@@ -63,18 +63,21 @@ class Resizable_deque {
 // Constructor
 template <typename Type>
 Resizable_deque<Type>::Resizable_deque( int n ):
-array (nullptr), // changes the array size to 16 if the initial array is less than 16
-ifront(0),
-iback(0),
-deque_size (0),
-initial_array_capacity (0),
-array_capacity(0)
+// Your initalization list
+array(nullptr),
+ifront(n),
+iback(-1),
+deque_size(0),
+initial_array_capacity(n),
+array_capacity(n)
 {
-    if (n<16)
+	//Check to see if size passed in is less than 16
+    if(n < 16)
         n=16;
-    array = new Type [n];
-    ifront = 0;
-    iback = n-1;
+    //Assign member variables
+    array = new Type[initial_array_capacity];
+    ifront = n;
+    iback = -1;
     deque_size = 0;
     initial_array_capacity = n;
     array_capacity = n;
@@ -83,38 +86,55 @@ array_capacity(0)
 // Copy Constructor
 template <typename Type>
 Resizable_deque<Type>::Resizable_deque( Resizable_deque const &deque ):
-        array (nullptr),
-        ifront(0),
-        iback(0),
-        deque_size(0),
-        initial_array_capacity(0),
-        array_capacity (0)
-
-{
-    for (int i= 0; i < deque.array_capacity ; i++)
-    array [i] = deque.array[i];
-}
-
-
-template <typename Type>
-Resizable_deque<Type>::Resizable_deque( Resizable_deque &&deque ):
-
-array (nullptr),
-ifront(0),
-iback(0),
+// Your initalization list
+array(nullptr),
+ifront(16),
+iback(-1),
 deque_size(0),
 initial_array_capacity(0),
-array_capacity (0)
-
-
+array_capacity(0)
 {
+    //Create new deque withe the same member variables as the deque passed in
+    array = new Type[deque.array_capacity];
+    ifront = deque.ifront;
+    iback = deque.iback;
+    deque_size = deque.deque_size;
+    initial_array_capacity = deque.initial_array_capacity;
+    array_capacity = deque.array_capacity;
+    
+    //Copy the contents of the array of the deque passed in to the new array
+    for(int i = 0; i<array_capacity; i++){
+        array[i] = deque.array[i];
+    }
 }
 
-
+// Move Constructor
+template <typename Type>
+Resizable_deque<Type>::Resizable_deque( Resizable_deque &&deque ):
+// Your initalization list
+array(new Type[16]),
+ifront(16),
+iback(-1),
+deque_size(0),
+initial_array_capacity(16),
+array_capacity(16)
+{
+    //Create deque with default member variables
+    array = new Type[16];
+    ifront = 16;
+    iback = -1;
+    deque_size = 0;
+    initial_array_capacity = 16;
+    array_capacity = 16;
+    
+    //Call swap with
+    swap(deque);
+}
+// Destructor
 template <typename Type>
 Resizable_deque<Type>::~Resizable_deque() {
-	// Enter your implementation here
-    delete[] array;
+	// Delete the memory allocated for array in the deque
+    delete []array;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -123,8 +143,7 @@ Resizable_deque<Type>::~Resizable_deque() {
 
 template <typename Type>
 int Resizable_deque<Type>::size() const {
-    return deque_size;
-
+	return deque_size;
 }
 
 template <typename Type>
@@ -134,48 +153,36 @@ int Resizable_deque<Type>::capacity() const {
 
 template <typename Type>
 bool Resizable_deque<Type>::empty() const {
-    return (deque_size ==0);
-    }
-
+    if(deque_size==0) //Check deque size
+        return true;
+	return false;
+}
 
 template <typename  Type>
 Type Resizable_deque<Type>::front() const {
-    if (empty()) {
+    if(empty())
         throw underflow();
-    }
     else
-    {
         return array[ifront];
-    }
 }
-
 
 template <typename  Type>
 Type Resizable_deque<Type>::back() const {
-    if (empty()) {
+    if(empty())
         throw underflow();
-    }
-else
-    {
+    else
         return array[iback];
-    }
 }
+
 template <typename Type>
 void Resizable_deque<Type>::swap( Resizable_deque<Type> &deque ) {
-    //std::swap (array,deque.array);
-    //std::swap(ifront, deque.ifront);
-    //std::swap (iback,deque.iback);
-    //std::swap(initial_array_capacity,deque.initial_array_capacity);
-    //std::swap(array_capacity,deque.array_capacity);
-
-
-
-
-
-    // Swap the member variables
-	//     std::swap( variable, deque.variable );
-
-	// Enter your implementation here
+	//Swap the member variables
+    std::swap(array, deque.array);
+    std::swap(ifront, deque.ifront);
+    std::swap(iback, deque.iback);
+    std::swap(deque_size, deque.deque_size);
+    std::swap(array_capacity, deque.array_capacity);
+    std::swap(initial_array_capacity, deque.initial_array_capacity);
 }
 
 template <typename Type>
@@ -197,116 +204,153 @@ Resizable_deque<Type> &Resizable_deque<Type>::operator=( Resizable_deque<Type> &
 
 template <typename Type>
 void Resizable_deque<Type>::push_front( Type const &obj ) {
-    if (ifront == 0) {
-        ifront = array_capacity - 1;
-    } else {
-        ifront = ifront - 1;
+	//Check to see oif array capacity needs to be doubled
+    if (deque_size == array_capacity){
+        double_array_capacity();
+        ifront = array_capacity -1;
+        array[ifront] = obj;
     }
-    int new_array_capacity;
-    array[ifront] = obj;
-    deque_size +=1;
-    if (size()==1)
-    iback=ifront;
-    if (size()==array_capacity) {
-        new_array_capacity = array_capacity * 2;
+    else{ //Else do a normal push
+        ifront--;
+        if(ifront < 0) //Check if loop around is required
+            ifront = array_capacity -1;
+        
+        array[ifront] = obj;
     }
-
-        Type *double_array = new Type[new_array_capacity];
-        int data = 0;
-        int i = ifront;
-
-        while (i != iback) {
-        double_array[data] = array[i];
-            i = (i+1)%array_capacity;
-
-        }
-        delete[] array;
-        array = double_array;
-        array_capacity = new_array_capacity;
-        ifront = 0;
-        iback = i;
-            }
+    
+    deque_size++;
+    //If there is only one element in the deque, ifront and iback should both be the index of it
+    if(deque_size == 1)
+        iback = ifront;
+}
 
 template <typename Type>
 void Resizable_deque<Type>::push_back( Type const &obj ) {
-//    if (iback==0){
-//        iback = array_capacity -1;}
-//    else {
-//        iback =  iback - 1;
-//    }
-//    array[iback] = obj;
-//
-//    int new_array_capacity;
-//    if (size() == new_array_capacity )
-//    {
-//        new_array_capacity = array_capacity * 2;
-//    }
-//    else
-//    {
-//        return;
-//    }
-//    Type *double_array = new Type [new_array_capacity];
-//    int data =0;
-//    int data_trail = iback;
-//
-//    while (data_trail!= ifront ){
-//        double_array[data] = array[data_trail];
-//        data_trail = (data_trail+1)%array_capacity;
-//        data++;
-//    }
-//    delete[] array;
-//    array = double_array;
-//    array_capacity = new_array_capacity;
-//    iback = 0 ;
-//    ifront =  data;
-//    deque_size +=1;
-//   }
-//    // Enter your implementation here
+	// Enter your implementation heres
+    if (deque_size == array_capacity){ //Check if the array capacity needs to be doubled
+        double_array_capacity();
+        iback++;
+        array[iback] = obj;
+    }
+    else{ //Else do a normal push
+        iback++;
+        if(iback > array_capacity -1) //Check if Loop around is required
+            iback = 0;
+        
+        array[iback] = obj;
+    }
+    
+    deque_size++;
+    if(deque_size == 1) //If there is only one element in the deque, ifront and iback should both be the index of it it
+        ifront = iback;
 }
 
 template <typename Type>
 void Resizable_deque<Type>::pop_front() {
-    if (size()==0) {
+    if(empty()){
         throw underflow();
-    }
-    ifront = (ifront+1)%array_capacity;
-    if (size()>0){
-        deque_size = deque_size -1;
-    }
-}
-
-template <typename Type>
-void Resizable_deque<Type>::pop_back() {
-    if (size()==0) {
-        throw underflow();
-    }
-    if (size() > 0 ){
-        deque_size = deque_size - 1;
-    }
-    if (iback ==0 ){
-        iback = array_capacity - 1;
     }
     else{
-        iback = iback -1;
-
+        ifront++; //Increment ifront to 'pop' the value at its previous index
+        if(ifront > array_capacity - 1) //Check if loop around is required
+            ifront = 0;
+        
+        deque_size--;
+    
+        //Check if array capacity needs to be halved
+        if(deque_size == (array_capacity/4) && array_capacity > initial_array_capacity)
+            halve_array_capacity();
     }
-
-    // Enter your implementation here
 }
+template <typename Type>
+void Resizable_deque<Type>::pop_back() {
+	// Enter your implementation here
+    if(empty()){
+        throw underflow();
+    }
+    else{
+        iback--; //Decrement iback to 'pop' the value at its previous index
+        if(iback < 0) //Check if loop around is required
+            iback = array_capacity-1;
+        
+        deque_size--;
+        
+        //Check if array capacity needs to be halved
+        if(deque_size == (array_capacity/4) && array_capacity > initial_array_capacity)
+            halve_array_capacity();
+    }
+}
+    
 
 template <typename Type>
 void Resizable_deque<Type>::clear() {
-        array_capacity = initial_array_capacity ;
-        delete [] array;
-        array = new Type[initial_array_capacity];
-        ifront=0;
-        iback=0;
+    //Delete the array,
+    delete []array;
+    //Reset all memeber variables other than initial_array capacity as that remains constant
+    ifront = initial_array_capacity;
+    iback = -1;
+    deque_size  = 0;
+    array_capacity = initial_array_capacity;
+    //Create empty array
+    array = new Type[initial_array_capacity];
 }
 /////////////////////////////////////////////////////////////////////////
 //                      Private member functions                       //
 /////////////////////////////////////////////////////////////////////////
 
 // Enter any private member functios (helper functions) here
+template <typename Type>
+void Resizable_deque<Type>::double_array_capacity(){
+    Type *newArr = new Type[array_capacity*2]; //Create new array with double the capacity of the full array
+    int index = 0; //Create index variable to keep track of indecies in new array
+    int i = ifront; //Iterate from front of deque to back of deque
+    
+    //use do while to handle case where ifront == iback + 1
+    //Loop through array being copied and push values to new array from ifront to iback to maintain order
+    do{
+        if(i > array_capacity-1) //Check if loop around is required
+            i = 0;
+        newArr[index] = array[i];
+        index++;
+        i++;
+    }while(i!=iback+1); //Loop until be go past iback
+    
+    //Adjust indexes of ifront and iback
+    ifront = 0;
+    iback = deque_size-1; //Since deque_size elements were copied to new array, deque_size -1 is the index
+    
+    //Delete memory of the old array
+    Type *temp = array;
+    array = newArr;
+    delete []temp;
+    
+    //Double the array capacity
+    array_capacity *= 2;
+}
+
+template <typename Type>
+void Resizable_deque<Type>::halve_array_capacity(){
+    Type *newArr = new Type[array_capacity/2]; //Create new array with 1/2 the capacity of the 1/4 full array
+    int index = 0; //Index of array being copied to
+      //Loop through array being copied and push values to new array from ifront to iback to maintain order
+    for(int i = ifront; i!=iback+1; i++){
+        if(i > array_capacity-1) //Check if loop around is required
+            i = 0;
+        newArr[index] = array[i];
+        index++;
+    }
+    //Adjust indexes of ifront and iback
+    ifront = 0;
+    iback = deque_size-1; //Since deque_size elements were copied to new array, deque_size -1 is the index
+    
+    //Delete memory of the old array
+    Type *temp = array;
+    array = newArr;
+    delete []temp;
+    
+    //Halve the array capacity
+    array_capacity /= 2;
+}
 
 
 /////////////////////////////////////////////////////////////////////////
